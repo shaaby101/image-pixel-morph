@@ -18,6 +18,16 @@ with col2:
     upload_b = st.file_uploader("Upload Image B", type=["png", "jpg", "jpeg"], key="B")
 with col3:
     morph_pressed = st.button("MORPH", key="morph")
+    # Slider to control animation speed (will be injected into the JS SPEED variable)
+    speed = st.slider(
+        "Animation speed",
+        min_value=0.0001,
+        max_value=0.01,
+        value=0.0015,
+        step=0.0001,
+        format="%.4f",
+        key="speed",
+    )
 
 def to_data_url(uploaded):
     if not uploaded:
@@ -49,6 +59,7 @@ html_template = """
 const IMG_A = "__IMG_A__";
 const IMG_B = "__IMG_B__";
 const AUTOSTART = __AUTOSTART__;
+const SPEED = __SPEED__; // injected from Streamlit
 
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
@@ -178,8 +189,6 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
   const imageData = ctx.createImageData(size, size);
   const buf = imageData.data;
 
-  const SPEED = 0.0015;
-
   function frame() {
     let done = true;
 
@@ -217,7 +226,7 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
 </html>
 """
 
-html_code = html_template.replace("__IMG_A__", img_a_url).replace("__IMG_B__", img_b_url).replace("__AUTOSTART__", autostart)
+html_code = html_template.replace("__IMG_A__", img_a_url).replace("__IMG_B__", img_b_url).replace("__AUTOSTART__", autostart).replace("__SPEED__", str(speed))
 
 # Render the canvas component below the Streamlit controls
 st.components.v1.html(html_code, height=720, scrolling=True)
