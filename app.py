@@ -3,7 +3,7 @@ import base64
 
 st.set_page_config(page_title="Pixel Rearranger", layout="wide")
 
-st.title("Pixel Rearranger (Live JS version)")
+st.title("Pixel Rearranger 🎨➡️🖼️")
 
 st.write(
     "Upload two images and watch the pixels morph from the first to the second. "
