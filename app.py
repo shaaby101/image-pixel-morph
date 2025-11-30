@@ -82,7 +82,7 @@ const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 const dpr = window.devicePixelRatio || 1;
 
-const SIZE = 600; // internal pixel grid size (tweak for perf)
+const SIZE = 400; // internal pixel grid size (tweak for perf)
 
 // set canvas pixel size and CSS size
 function setupCanvas() {
