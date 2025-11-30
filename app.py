@@ -41,33 +41,48 @@ img_b_url = to_data_url(upload_b)
 autostart = "true" if morph_pressed else "false"
 
 # HTML + JS: canvas will be rendered below the Morph button (this component is placed after the button)
+
 html_template = """
 <!DOCTYPE html>
 <html>
 <body style="background:#000; margin:0; color:white; font-family:sans-serif;">
 
 <style>
-  #stage {
-    width: 100%;
+  body {
     display: flex;
     justify-content: center;
   }
 
+  #wrapper {
+    width: 100%;
+    max-width: 650px;
+    padding: 10px;
+    margin: 0 auto;
+  }
+
+  #stage {
+    width: 100%;
+    background: #111;
+    padding: 8px;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+
   #c {
-    max-width: 100%;
+    width: 100%;
     height: auto;
     display: block;
+    background: #000;
+    border-radius: 4px;
     margin: 0 auto;
   }
 </style>
 
-<div style="width:100%; padding:10px 0; display:flex; justify-content:center;">
-  <div style="background:#111; padding:8px; border-radius:8px;">
-    <div id="stage">
-      <canvas id="c" style="display:block; background:#000; border-radius:4px;"></canvas>
-      <div style="text-align:center; margin-top:8px; font-size:12px; color:#bbb;">
-        Press SPACE inside the canvas or click MORPH (Streamlit) to run.
-      </div>
+<div id="wrapper">
+  <div id="stage">
+    <canvas id="c"></canvas>
+    <div style="text-align:center; margin-top:8px; font-size:12px; color:#bbb;">
+      Press SPACE or tap the MORPH button to animate.
     </div>
   </div>
 </div>
@@ -76,29 +91,31 @@ html_template = """
 const IMG_A = "__IMG_A__";
 const IMG_B = "__IMG_B__";
 const AUTOSTART = __AUTOSTART__;
-const SPEED = __SPEED__; // injected from Streamlit
+const SPEED = __SPEED__;
 
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 const dpr = window.devicePixelRatio || 1;
 
-const SIZE = 400; // internal pixel grid size (tweak for perf)
+// Dynamic canvas size (mobile friendly)
+let SIZE = 600;
 
-// set canvas pixel size and CSS size
-function setupCanvas() {
+function updateSize() {
+  // Resize depending on device width
+  SIZE = Math.min(window.innerWidth * 0.9, 600);
+
   canvas.width = SIZE * dpr;
   canvas.height = SIZE * dpr;
-  canvas.style.width = "100%";
-  canvas.style.height = "auto";
+
+  canvas.style.width = SIZE + "px";
+  canvas.style.height = SIZE + "px";
+
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-setupCanvas();
-window.addEventListener("resize", () => {
-  // keep fixed SIZE for internal processing; CSS remains constant
-  setupCanvas();
-});
 
-// IMAGE LOAD
+updateSize();
+window.addEventListener("resize", updateSize);
+
 let imgA = null;
 let imgB = null;
 
@@ -117,7 +134,6 @@ function loadFromDataURL(dataURL, slot) {
 if (IMG_A) loadFromDataURL(IMG_A, "A");
 if (IMG_B) loadFromDataURL(IMG_B, "B");
 
-// allow spacebar to trigger when focused
 window.addEventListener("keydown", e => {
   if (e.code === "Space") {
     e.preventDefault();
@@ -126,14 +142,11 @@ window.addEventListener("keydown", e => {
 });
 
 function maybeAutoStart() {
-  if (AUTOSTART && imgA && imgB) {
-    startRearrange();
-  }
+  if (AUTOSTART && imgA && imgB) startRearrange();
 }
 
-// MAIN LOGIC (adapted from original)
 function startRearrange() {
-  const size = SIZE;
+  const size = Math.floor(SIZE); // dynamic internal resolution
 
   const pixelsA = getPixelArray(imgA, size);
   const pixelsB = getPixelArray(imgB, size);
@@ -217,7 +230,7 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
         done = false;
     }
 
-    // clear buffer
+    // Clear buffer
     for (let i = 0; i < buf.length; i++) buf[i] = 0;
 
     for (let i = 0; i < N; i++) {
@@ -230,7 +243,6 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
       buf[idx+3] = 255;
     }
 
-    // draw at 0,0 inside the canvas
     ctx.putImageData(imageData, 0, 0);
 
     if (!done) requestAnimationFrame(frame);
@@ -242,6 +254,7 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
 </body>
 </html>
 """
+
 
 html_code = html_template.replace("__IMG_A__", img_a_url).replace("__IMG_B__", img_b_url).replace("__AUTOSTART__", autostart).replace("__SPEED__", str(speed))
 
