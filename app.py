@@ -1,4 +1,5 @@
 import streamlit as st
+import base64
 
 st.set_page_config(page_title="Pixel Rearranger", layout="wide")
 
@@ -6,89 +7,105 @@ st.title("Pixel Rearranger (Live JS version)")
 
 st.write(
     "Upload two images and watch the pixels morph from the first to the second. "
-    "You can press the Morph button or Spacebar to start."
+    "You can press the Morph button below (or Space inside the canvas) to start."
 )
 
-# HTML + JS code embedded directly
-html_code = """
+col1, col2, col3 = st.columns([1, 1, 2])
+
+with col1:
+    upload_a = st.file_uploader("Upload Image A", type=["png", "jpg", "jpeg"], key="A")
+with col2:
+    upload_b = st.file_uploader("Upload Image B", type=["png", "jpg", "jpeg"], key="B")
+with col3:
+    morph_pressed = st.button("MORPH", key="morph")
+
+def to_data_url(uploaded):
+    if not uploaded:
+        return ""
+    data = uploaded.read()
+    mime = uploaded.type or "image/png"
+    return f"data:{mime};base64," + base64.b64encode(data).decode()
+
+img_a_url = to_data_url(upload_a)
+img_b_url = to_data_url(upload_b)
+autostart = "true" if morph_pressed else "false"
+
+# HTML + JS: canvas will be rendered below the Morph button (this component is placed after the button)
+html_code = f"""
 <!DOCTYPE html>
 <html>
-<body style="background:#000; margin:0; overflow:hidden; color:white; font-family:sans-serif;">
+<body style="background:#000; margin:0; color:white; font-family:sans-serif;">
 
-<canvas id="c"></canvas>
-
-<!-- UI -->
-<div style="position:fixed; top:10px; left:10px; z-index:10;">
-  <div>Upload Image A:</div>
-  <input type="file" id="uploadA">
-  <br><br>
-  <div>Upload Image B:</div>
-  <input type="file" id="uploadB">
-  <br><br>
-  <button id="morphBtn" style="padding:10px 20px; font-size:16px; background:#1d9bf0; color:white; border:none; border-radius:6px; cursor:pointer;">
-    MORPH
-  </button>
-  <p style="font-size:12px; margin-top:10px; opacity:0.7;">Press SPACE or click MORPH to run the rearrangement.</p>
+<div style="width:100%; display:flex; justify-content:center; padding:10px 0;">
+  <div id="stage" style="background:#111; padding:8px; border-radius:8px;">
+    <canvas id="c" style="display:block; background:#000; border-radius:4px;"></canvas>
+    <div style="text-align:center; margin-top:8px; font-size:12px; color:#bbb;">
+      Press SPACE inside the canvas or click MORPH (Streamlit) to run.
+    </div>
+  </div>
 </div>
 
 <script>
+const IMG_A = "{img_a_url}";
+const IMG_B = "{img_b_url}";
+const AUTOSTART = {autostart};
+
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
-
 const dpr = window.devicePixelRatio || 1;
-function resizeCanvas() {
-  canvas.width = window.innerWidth * dpr;
-  canvas.height = window.innerHeight * dpr;
-  canvas.style.width = window.innerWidth + "px";
-  canvas.style.height = window.innerHeight + "px";
+
+const SIZE = 600; // internal pixel grid size (tweak for perf)
+
+// set canvas pixel size and CSS size
+function setupCanvas() {
+  canvas.width = SIZE * dpr;
+  canvas.height = SIZE * dpr;
+  canvas.style.width = SIZE + "px";
+  canvas.style.height = SIZE + "px";
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
+setupCanvas();
+window.addEventListener("resize", () => {
+  // keep fixed SIZE for internal processing; CSS remains constant
+  setupCanvas();
+});
 
-// IMAGE UPLOAD HANDLING
+// IMAGE LOAD
 let imgA = null;
 let imgB = null;
 
-document.getElementById("uploadA").onchange = e => loadImage(e.target.files[0], "A");
-document.getElementById("uploadB").onchange = e => loadImage(e.target.files[0], "B");
-
-function loadImage(file, slot) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    const img = new Image();
-    img.onload = () => {
-      if (slot === "A") imgA = img;
-      if (slot === "B") imgB = img;
-    };
-    img.src = reader.result;
+function loadFromDataURL(dataURL, slot) {
+  if (!dataURL) return;
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    if (slot === "A") imgA = img;
+    else imgB = img;
+    maybeAutoStart();
   };
-  reader.readAsDataURL(file);
+  img.src = dataURL;
 }
 
-// MORPH TRIGGER
-let canStart = true;
+if (IMG_A) loadFromDataURL(IMG_A, "A");
+if (IMG_B) loadFromDataURL(IMG_B, "B");
 
-document.getElementById("morphBtn").addEventListener("click", () => {
-  if (canStart && imgA && imgB) {
-    canStart = false;
-    startRearrange();
-  }
-});
-
+// allow spacebar to trigger when focused
 window.addEventListener("keydown", e => {
   if (e.code === "Space") {
     e.preventDefault();
-    if (canStart && imgA && imgB) {
-      canStart = false;
-      startRearrange();
-    }
+    if (imgA && imgB) startRearrange();
   }
 });
 
-// MAIN LOGIC
+function maybeAutoStart() {
+  if (AUTOSTART && imgA && imgB) {
+    startRearrange();
+  }
+}
+
+// MAIN LOGIC (adapted from original)
 function startRearrange() {
-  const size = 600; // adjust for performance
+  const size = SIZE;
 
   const pixelsA = getPixelArray(imgA, size);
   const pixelsB = getPixelArray(imgB, size);
@@ -157,14 +174,11 @@ function sortByColor(arr) {
 }
 
 function animateTyped(size, x, y, tx, ty, r, g, b) {
-  const cx = (canvas.width / dpr - size) / 2;
-  const cy = (canvas.height / dpr - size) / 2;
-
   const N = size * size;
   const imageData = ctx.createImageData(size, size);
   const buf = imageData.data;
 
-  const SPEED = 0.001;
+  const SPEED = 0.0015;
 
   function frame() {
     let done = true;
@@ -177,7 +191,8 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
         done = false;
     }
 
-    buf.fill(0);
+    // clear buffer
+    for (let i = 0; i < buf.length; i++) buf[i] = 0;
 
     for (let i = 0; i < N; i++) {
       const px = x[i] | 0;
@@ -189,10 +204,10 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
       buf[idx+3] = 255;
     }
 
-    ctx.putImageData(imageData, cx, cy);
+    // draw at 0,0 inside the canvas
+    ctx.putImageData(imageData, 0, 0);
 
     if (!done) requestAnimationFrame(frame);
-    else canStart = true;
   }
 
   frame();
@@ -202,5 +217,5 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
 </html>
 """
 
-# Render HTML in Streamlit
-st.components.v1.html(html_code, height=700, scrolling=True)
+# Render the canvas component below the Streamlit controls
+st.components.v1.html(html_code, height=720, scrolling=True)
