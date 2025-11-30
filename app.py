@@ -98,7 +98,7 @@ const ctx = canvas.getContext("2d");
 const dpr = window.devicePixelRatio || 1;
 
 // Dynamic canvas size (mobile friendly)
-let SIZE = 600;
+let SIZE = 800;
 
 function updateSize() {
   // Resize depending on device width
