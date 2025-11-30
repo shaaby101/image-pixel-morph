@@ -31,7 +31,7 @@ img_b_url = to_data_url(upload_b)
 autostart = "true" if morph_pressed else "false"
 
 # HTML + JS: canvas will be rendered below the Morph button (this component is placed after the button)
-html_code = f"""
+html_template = """
 <!DOCTYPE html>
 <html>
 <body style="background:#000; margin:0; color:white; font-family:sans-serif;">
@@ -46,9 +46,9 @@ html_code = f"""
 </div>
 
 <script>
-const IMG_A = "{img_a_url}";
-const IMG_B = "{img_b_url}";
-const AUTOSTART = {autostart};
+const IMG_A = "__IMG_A__";
+const IMG_B = "__IMG_B__";
+const AUTOSTART = __AUTOSTART__;
 
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
@@ -216,6 +216,8 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
 </body>
 </html>
 """
+
+html_code = html_template.replace("__IMG_A__", img_a_url).replace("__IMG_B__", img_b_url).replace("__AUTOSTART__", autostart)
 
 # Render the canvas component below the Streamlit controls
 st.components.v1.html(html_code, height=720, scrolling=True)
