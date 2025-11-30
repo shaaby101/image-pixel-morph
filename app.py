@@ -88,7 +88,7 @@ window.addEventListener("keydown", e => {
 
 // MAIN LOGIC
 function startRearrange() {
-  const size = 400; // adjust for performance
+  const size = 600; // adjust for performance
 
   const pixelsA = getPixelArray(imgA, size);
   const pixelsB = getPixelArray(imgB, size);
