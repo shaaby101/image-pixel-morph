@@ -46,6 +46,22 @@ html_template = """
 <html>
 <body style="background:#000; margin:0; color:white; font-family:sans-serif;">
 
+<style>
+  #stage {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  #c {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+</style>
+
+
 <div style="width:100%; display:flex; justify-content:center; padding:10px 0;">
   <div id="stage" style="background:#111; padding:8px; border-radius:8px;">
     <canvas id="c" style="display:block; background:#000; border-radius:4px;"></canvas>
@@ -71,8 +87,8 @@ const SIZE = 600; // internal pixel grid size (tweak for perf)
 function setupCanvas() {
   canvas.width = SIZE * dpr;
   canvas.height = SIZE * dpr;
-  canvas.style.width = SIZE + "px";
-  canvas.style.height = SIZE + "px";
+  canvas.style.width = "100%";
+  canvas.style.height = "auto";
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 setupCanvas();
