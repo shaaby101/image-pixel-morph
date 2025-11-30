@@ -61,12 +61,13 @@ html_template = """
   }
 </style>
 
-
-<div style="width:100%; display:flex; justify-content:center; padding:10px 0;">
-  <div id="stage" style="background:#111; padding:8px; border-radius:8px;">
-    <canvas id="c" style="display:block; background:#000; border-radius:4px;"></canvas>
-    <div style="text-align:center; margin-top:8px; font-size:12px; color:#bbb;">
-      Press SPACE inside the canvas or click MORPH (Streamlit) to run.
+<div style="width:100%; padding:10px 0; display:flex; justify-content:center;">
+  <div style="background:#111; padding:8px; border-radius:8px;">
+    <div id="stage">
+      <canvas id="c" style="display:block; background:#000; border-radius:4px;"></canvas>
+      <div style="text-align:center; margin-top:8px; font-size:12px; color:#bbb;">
+        Press SPACE inside the canvas or click MORPH (Streamlit) to run.
+      </div>
     </div>
   </div>
 </div>
