@@ -111,3 +111,5 @@ Open the local URL printed by Streamlit (usually `http://localhost:8501`).
 
 - MP4 export requires a browser with WebCodecs support (best in Chromium-based browsers).
 - If WebCodecs is unavailable, morph animation still works, but MP4 download is disabled.
+
+##PLEASE STAR THE REPO IF YOU ENJOYED PLAYIN AROUND WITH IT.🔥🔥 
