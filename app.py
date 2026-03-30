@@ -51,18 +51,20 @@ html_template = """
   #stage { width:100%; background:#111; padding:8px; border-radius:8px; position:relative; display:flex; justify-content:center; }
   #c { max-width:100%; height:auto; background:#000; border-radius:4px; display:block; }
   #fullscreen-btn { position:absolute; top:8px; right:8px; background:rgba(255,255,255,0.15); padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; backdrop-filter: blur(4px); }
+  #download-mp4-btn { position:absolute; top:8px; left:8px; background:rgba(29,155,240,0.9); color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; }
+  #download-mp4-btn[disabled] { opacity:0.5; cursor:not-allowed; }
+  #status-text { margin-top:8px; text-align:center; font-size:12px; color:#bbb; min-height:16px; }
 </style>
 </head>
 <body>
 <div style="width:100%; padding:10px 0; display:flex; justify-content:center;">
   <div style="background:#111; padding:8px; border-radius:8px;">
     <div id="stage">
+      <button id="download-mp4-btn" disabled>Download MP4</button>
       <div id="fullscreen-btn">⤢</div>
       <canvas id="c"></canvas>
-      <div style="text-align:center; margin-top:8px; font-size:12px; color:#bbb;">
-        Pinch to zoom. Drag to pan. Double-tap to fullscreen. Press SPACE to animate.
-      </div>
     </div>
+    <div id="status-text">Pinch to zoom. Drag to pan. Double-tap to fullscreen. Press SPACE to animate.</div>
   </div>
 </div>
 
@@ -75,6 +77,27 @@ const SPEED = __SPEED__;
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 const dpr = window.devicePixelRatio || 1;
+const downloadBtn = document.getElementById("download-mp4-btn");
+const statusText = document.getElementById("status-text");
+
+let isAnimating = false;
+let lastMorphData = null;
+
+const mp4State = {
+  ready: false,
+  loading: false,
+  error: "",
+  Muxer: null,
+  ArrayBufferTarget: null,
+};
+
+function setStatus(msg) {
+  statusText.textContent = msg;
+}
+
+function setDownloadEnabled(enabled) {
+  downloadBtn.disabled = !enabled;
+}
 
 // ====== RESPONSIVE SIZING (internal resolution scales with dpr, CSS makes it responsive) ======
 let SIZE = 600;
@@ -170,12 +193,70 @@ function loadFromDataURL(dataURL, slot) {
 if (IMG_A) loadFromDataURL(IMG_A, "A");
 if (IMG_B) loadFromDataURL(IMG_B, "B");
 
-window.addEventListener("keydown", e => { if (e.code === "Space") { e.preventDefault(); if (imgA && imgB) startRearrange(); } });
+window.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    e.preventDefault();
+    if (imgA && imgB && !isAnimating) startRearrange();
+  }
+});
 
-function maybeAutoStart() { if (AUTOSTART && imgA && imgB) startRearrange(); }
+function maybeAutoStart() { if (AUTOSTART && imgA && imgB && !isAnimating) startRearrange(); }
+
+async function initMp4Support() {
+  if (!("VideoEncoder" in window) || !("VideoFrame" in window)) {
+    mp4State.error = "MP4 export is unavailable in this browser.";
+    setStatus(mp4State.error + " You can still run the animation.");
+    return;
+  }
+  mp4State.loading = true;
+  setStatus("Preparing MP4 exporter...");
+  try {
+    const mod = await import("https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/+esm");
+    mp4State.Muxer = mod.Muxer;
+    mp4State.ArrayBufferTarget = mod.ArrayBufferTarget;
+    mp4State.ready = true;
+    setStatus("MP4 export ready. Run a morph, then click Download MP4.");
+  } catch (err) {
+    mp4State.error = "MP4 exporter failed to load.";
+    setStatus(mp4State.error + " " + (err?.message || ""));
+  } finally {
+    mp4State.loading = false;
+  }
+}
+
+downloadBtn.addEventListener("click", async () => {
+  if (!lastMorphData || !mp4State.ready) return;
+  setDownloadEnabled(false);
+  const oldLabel = downloadBtn.textContent;
+  downloadBtn.textContent = "Rendering...";
+  try {
+    const blob = await exportMorphToMp4(lastMorphData);
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `pixel-morph-${stamp}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    setStatus("MP4 generated and downloaded.");
+  } catch (err) {
+    setStatus("Failed to export MP4: " + (err?.message || "Unknown error"));
+  } finally {
+    downloadBtn.textContent = oldLabel;
+    setDownloadEnabled(!!lastMorphData && mp4State.ready);
+  }
+});
+
+initMp4Support();
 
 // ====== ANIMATION ======
 function startRearrange() {
+  if (isAnimating) return;
+  isAnimating = true;
+  setDownloadEnabled(false);
+  setStatus("Animating pixel morph...");
+
   const size = Math.floor(SIZE);
   const pixelsA = getPixelArray(imgA, size);
   const pixelsB = getPixelArray(imgB, size);
@@ -190,10 +271,14 @@ function startRearrange() {
   const r  = new Uint8ClampedArray(N);
   const g  = new Uint8ClampedArray(N);
   const b  = new Uint8ClampedArray(N);
+  const x0 = new Float32Array(N);
+  const y0 = new Float32Array(N);
 
   for (let i = 0; i < N; i++) {
     x[i]  = sortedA[i].x;
     y[i]  = sortedA[i].y;
+    x0[i] = sortedA[i].x;
+    y0[i] = sortedA[i].y;
     tx[i] = sortedB[i].x;
     ty[i] = sortedB[i].y;
     r[i]  = sortedA[i].r;
@@ -201,7 +286,16 @@ function startRearrange() {
     b[i]  = sortedA[i].b;
   }
 
-  animateTyped(size, x, y, tx, ty, r, g, b);
+  lastMorphData = { size, x0, y0, tx, ty, r, g, b };
+  animateTyped(size, x, y, tx, ty, r, g, b, () => {
+    isAnimating = false;
+    if (mp4State.ready) {
+      setStatus("Morph complete. Click Download MP4.");
+      setDownloadEnabled(true);
+    } else {
+      setStatus("Morph complete.");
+    }
+  });
 }
 
 function getPixelArray(img, size) {
@@ -226,7 +320,7 @@ function getPixelArray(img, size) {
 
 function sortByColor(arr) { return [...arr].sort((a, b) => a.r - b.r || a.g - b.g || a.b - b.b); }
 
-function animateTyped(size, x, y, tx, ty, r, g, b) {
+function animateTyped(size, x, y, tx, ty, r, g, b, onDone) {
   const N = size * size;
   const imageData = ctx.createImageData(size, size);
   const buf = imageData.data;
@@ -257,9 +351,93 @@ function animateTyped(size, x, y, tx, ty, r, g, b) {
     ctx.putImageData(imageData, 0, 0);
 
     if (!done) requestAnimationFrame(frame);
+    else if (onDone) onDone();
   }
 
   frame();
+}
+
+async function exportMorphToMp4(morphData) {
+  if (!mp4State.ready) throw new Error("MP4 exporter is not available.");
+
+  const fps = 30;
+  const targetFrames = 360;
+  const epsilon = 0.25;
+  const size = morphData.size;
+
+  const x = new Float32Array(morphData.x0);
+  const y = new Float32Array(morphData.y0);
+  const tx = morphData.tx;
+  const ty = morphData.ty;
+  const r = morphData.r;
+  const g = morphData.g;
+  const b = morphData.b;
+  const N = size * size;
+
+  const maxStartDistance = Math.max(size, 1);
+  const exportSpeed = 1 - Math.pow(epsilon / maxStartDistance, 1 / targetFrames);
+
+  const off = document.createElement("canvas");
+  off.width = size;
+  off.height = size;
+  const octx = off.getContext("2d", { willReadFrequently: false });
+  const imageData = octx.createImageData(size, size);
+  const buf = imageData.data;
+
+  const target = new mp4State.ArrayBufferTarget();
+  const muxer = new mp4State.Muxer({
+    target,
+    video: { codec: "avc", width: size, height: size },
+    fastStart: "in-memory",
+  });
+
+  const encoder = new VideoEncoder({
+    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+    error: (e) => { throw e; },
+  });
+
+  let config = { codec: "avc1.42001E", width: size, height: size, bitrate: 3_000_000, framerate: fps };
+  const support = await VideoEncoder.isConfigSupported(config);
+  if (!support.supported) {
+    config = { codec: "avc1.4d401f", width: size, height: size, bitrate: 3_000_000, framerate: fps };
+  }
+  encoder.configure(config);
+
+  setStatus("Encoding MP4...");
+  for (let frameIndex = 0; frameIndex < targetFrames; frameIndex++) {
+    for (let i = 0; i < N; i++) {
+      x[i] += (tx[i] - x[i]) * exportSpeed;
+      y[i] += (ty[i] - y[i]) * exportSpeed;
+    }
+
+    buf.fill(0);
+    for (let i = 0; i < N; i++) {
+      const px = x[i] | 0;
+      const py = y[i] | 0;
+      const idx = (py * size + px) * 4;
+      buf[idx] = r[i];
+      buf[idx + 1] = g[i];
+      buf[idx + 2] = b[i];
+      buf[idx + 3] = 255;
+    }
+
+    octx.putImageData(imageData, 0, 0);
+    const timestampUs = Math.round((1_000_000 * frameIndex) / fps);
+    const vf = new VideoFrame(off, { timestamp: timestampUs });
+    encoder.encode(vf, { keyFrame: frameIndex % fps === 0 });
+    vf.close();
+
+    if (frameIndex % 30 === 0) {
+      setStatus(`Encoding MP4... ${Math.round((frameIndex / targetFrames) * 100)}%`);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+  }
+
+  await encoder.flush();
+  encoder.close();
+  muxer.finalize();
+
+  return new Blob([target.buffer], { type: "video/mp4" });
 }
 </script>
 </body>
