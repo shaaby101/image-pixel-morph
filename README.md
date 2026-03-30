@@ -2,6 +2,8 @@
 
 A Streamlit app that morphs one image into another by rearranging pixels based on color sorting, then animating each pixel toward a matched destination.
 
+If you enjoyed playing with this project, consider starring the repository.
+
 ## Technologies Used
 
 - Python 3

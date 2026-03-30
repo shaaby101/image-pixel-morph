@@ -9,6 +9,7 @@ st.write(
     "Upload two images and watch the pixels morph from the first to the second. "
     "You can press the Morph button below (or Space inside the canvas) to start."
 )
+st.caption("Enjoyed this tool? Please consider starring the repo to support it.")
 
 col1, col2, col3 = st.columns([1, 1, 2])
 
