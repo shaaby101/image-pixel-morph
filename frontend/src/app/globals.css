@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface-tint: #00e1ab;
+  --color-on-secondary-fixed: #380038;
+  --color-secondary-fixed-dim: #ffabf3;
+  --color-error: #ffb4ab;
+  --color-surface-container-low: #1b1b1b;
+  --color-primary-container: #00ffc2;
+  --color-error-container: #93000a;
+  --color-on-surface: #e2e2e2;
+  --color-on-primary-container: #007255;
+  --color-secondary-fixed: #ffd7f5;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-tertiary-container: #e1e1e1;
+  --color-inverse-primary: #006c50;
+  --color-surface: #131313;
+  --color-primary-fixed: #36ffc4;
+  --color-secondary: #ffabf3;
+  --color-outline: #83958c;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353535;
+  --color-on-secondary: #5b005b;
+  --color-secondary-container: #fe00fe;
+  --color-on-error-container: #ffdad6;
+  --color-inverse-on-surface: #303030;
+  --color-surface-container: #1f1f1f;
+  --color-surface-dim: #131313;
+  --color-on-primary-fixed: #002116;
+  --color-on-secondary-container: #500050;
+  --color-on-secondary-fixed-variant: #810081;
+  --color-outline-variant: #3a4a43;
+  --color-tertiary: #fefdfd;
+  --color-on-tertiary-container: #636464;
+  --color-primary-fixed-dim: #00e1ab;
+  --color-surface-bright: #393939;
+  --color-on-tertiary-fixed: #1a1c1c;
+  --color-on-tertiary-fixed-variant: #464747;
+  --color-on-surface-variant: #b9cbc1;
+  --color-on-tertiary: #2f3131;
+  --color-on-error: #690005;
+  --color-tertiary-fixed: #e3e2e2;
+  --color-background: #131313;
+  --color-on-background: #e2e2e2;
+  --color-on-primary: #003828;
+  --color-inverse-surface: #e2e2e2;
+  --color-surface-variant: #353535;
+  --color-tertiary-fixed-dim: #c6c6c6;
+  --color-primary: #fbfffa;
+  --color-on-primary-fixed-variant: #00513c;
+
+  --font-label-mono: "Space Grotesk", sans-serif;
+  --font-graffiti-display: "Space Grotesk", sans-serif;
+  --font-headline-lg: "Space Grotesk", sans-serif;
+  --font-headline-md: "Space Grotesk", sans-serif;
+  --font-body-lg: "Lexend", sans-serif;
+  --font-body-md: "Lexend", sans-serif;
+  
+  --spacing-gutter: 16px;
+  --spacing-margin: 24px;
+}
+
+@layer utilities {
+  .win95-outset {
+      border: 2px solid;
+      border-top-color: #fff;
+      border-left-color: #fff;
+      border-right-color: #404040;
+      border-bottom-color: #404040;
+      background: #c0c0c0;
+  }
+  .win95-inset {
+      border: 2px solid;
+      border-top-color: #404040;
+      border-left-color: #404040;
+      border-right-color: #fff;
+      border-bottom-color: #fff;
+  }
+  .crt-scanline {
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+      background-size: 100% 4px, 3px 100%;
+      pointer-events: none;
+  }
+  .glitch-text {
+      text-shadow: 2px 0 #fe00fe, -2px 0 #00ffc2;
+  }
+  .halftone {
+      background-image: radial-gradient(#3a4a43 1px, transparent 0);
+      background-size: 4px 4px;
+  }
+}

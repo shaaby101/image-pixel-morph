@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700;800;900&amp;family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .win95-outset {
+            border: 2px solid;
+            border-top-color: #fff;
+            border-left-color: #fff;
+            border-right-color: #404040;
+            border-bottom-color: #404040;
+            background: #c0c0c0;
+        }
+        .win95-inset {
+            border: 2px solid;
+            border-top-color: #404040;
+            border-left-color: #404040;
+            border-right-color: #fff;
+            border-bottom-color: #fff;
+        }
+        .crt-scanline {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+        .glitch-text {
+            text-shadow: 2px 0 #fe00fe, -2px 0 #00ffc2;
+        }
+        .halftone {
+            background-image: radial-gradient(#3a4a43 1px, transparent 0);
+            background-size: 4px 4px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#00e1ab",
+                        "on-secondary-fixed": "#380038",
+                        "secondary-fixed-dim": "#ffabf3",
+                        "error": "#ffb4ab",
+                        "surface-container-low": "#1b1b1b",
+                        "primary-container": "#00ffc2",
+                        "error-container": "#93000a",
+                        "on-surface": "#e2e2e2",
+                        "on-primary-container": "#007255",
+                        "secondary-fixed": "#ffd7f5",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary-container": "#e1e1e1",
+                        "inverse-primary": "#006c50",
+                        "surface": "#131313",
+                        "primary-fixed": "#36ffc4",
+                        "secondary": "#ffabf3",
+                        "outline": "#83958c",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-highest": "#353535",
+                        "on-secondary": "#5b005b",
+                        "secondary-container": "#fe00fe",
+                        "on-error-container": "#ffdad6",
+                        "inverse-on-surface": "#303030",
+                        "surface-container": "#1f1f1f",
+                        "surface-dim": "#131313",
+                        "on-primary-fixed": "#002116",
+                        "on-secondary-container": "#500050",
+                        "on-secondary-fixed-variant": "#810081",
+                        "outline-variant": "#3a4a43",
+                        "tertiary": "#fefdfd",
+                        "on-tertiary-container": "#636464",
+                        "primary-fixed-dim": "#00e1ab",
+                        "surface-bright": "#393939",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "on-surface-variant": "#b9cbc1",
+                        "on-tertiary": "#2f3131",
+                        "on-error": "#690005",
+                        "tertiary-fixed": "#e3e2e2",
+                        "background": "#131313",
+                        "on-background": "#e2e2e2",
+                        "on-primary": "#003828",
+                        "inverse-surface": "#e2e2e2",
+                        "surface-variant": "#353535",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "primary": "#fbfffa",
+                        "on-primary-fixed-variant": "#00513c"
+                    },
+                    "fontFamily": {
+                        "label-mono": ["Space Grotesk"],
+                        "graffiti-display": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "body-lg": ["Lexend"],
+                        "body-md": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container overflow-hidden">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 w-full z-50 border-t-2 border-l-2 border-zinc-100 border-r-2 border-b-2 border-zinc-600 bg-zinc-300 dark:bg-zinc-800 shadow-[inset_1px_1px_0px_#fff] flex justify-between items-center h-10 px-1 w-full">
+<div class="flex items-center gap-2">
+<div class="text-lg font-black bg-blue-700 text-white px-2 py-0.5 border-r-2 border-b-2 border-black font-headline-md uppercase">SYS_HALT_v.01</div>
+<nav class="hidden md:flex gap-1">
+<a class="bg-blue-800 text-white px-2 font-label-mono text-sm font-bold uppercase tracking-widest" href="#">FILE</a>
+<a class="text-black dark:text-zinc-300 px-2 font-label-mono text-sm font-bold uppercase tracking-widest hover:bg-zinc-400 dark:hover:bg-zinc-700" href="#">DEBUG</a>
+<a class="text-black dark:text-zinc-300 px-2 font-label-mono text-sm font-bold uppercase tracking-widest hover:bg-zinc-400 dark:hover:bg-zinc-700" href="#">WORM</a>
+<a class="text-black dark:text-zinc-300 px-2 font-label-mono text-sm font-bold uppercase tracking-widest hover:bg-zinc-400 dark:hover:bg-zinc-700" href="#">ROOT</a>
+</nav>
+</div>
+<div class="flex items-center gap-1">
+<div class="win95-inset bg-black px-2 py-0.5 flex items-center mr-2">
+<span class="text-primary-container font-label-mono text-xs">SCANNING...</span>
+<span class="material-symbols-outlined text-xs text-primary-container ml-2">search</span>
+</div>
+<button class="win95-outset w-6 h-6 flex items-center justify-center hover:bg-zinc-400">
+<span class="material-symbols-outlined text-sm">minimize</span>
+</button>
+<button class="win95-outset w-6 h-6 flex items-center justify-center hover:bg-zinc-400">
+<span class="material-symbols-outlined text-sm">fullscreen</span>
+</button>
+<button class="win95-outset w-6 h-6 flex items-center justify-center hover:bg-zinc-400">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-10 h-full w-64 border-r-4 border-dotted border-zinc-800 bg-black flex flex-col p-6 space-y-8 z-40">
+<div class="mb-4">
+<h2 class="font-graffiti-display italic font-black text-xl text-[#00FFC2] blur-[0.5px]">OPERATOR_0</h2>
+<p class="font-label-mono text-[10px] text-secondary opacity-80">STATUS: COMPROMISED</p>
+</div>
+<nav class="space-y-6">
+<a class="flex items-center gap-3 bg-white text-black -rotate-2 scale-110 border-2 border-black p-2 cursor-crosshair" href="#">
+<span class="material-symbols-outlined" data-weight="fill">skull</span>
+<span class="font-graffiti-display italic font-black text-xl">INFILTRATE</span>
+</a>
+<a class="flex items-center gap-3 text-[#00FFC2] opacity-70 hover:opacity-100 hover:skew-x-6 transition-transform duration-75 cursor-crosshair" href="#">
+<span class="material-symbols-outlined">enhanced_encryption</span>
+<span class="font-graffiti-display italic font-black text-xl">ENCRYPT</span>
+</a>
+<a class="flex items-center gap-3 text-[#00FFC2] opacity-70 hover:opacity-100 hover:skew-x-6 transition-transform duration-75 cursor-crosshair" href="#">
+<span class="material-symbols-outlined">deployed_code</span>
+<span class="font-graffiti-display italic font-black text-xl">PAYLOAD</span>
+</a>
+<div class="h-px w-full bg-zinc-800 my-4"></div>
+<a class="flex items-center gap-3 text-[#00FFC2] opacity-70 hover:opacity-100 hover:skew-x-6 transition-transform duration-75 cursor-crosshair" href="#">
+<span class="material-symbols-outlined">power_settings_new</span>
+<span class="font-graffiti-display italic font-black text-xl text-error">LOGOUT</span>
+</a>
+</nav>
+<!-- Digital Graffiti Sticker -->
+<div class="absolute bottom-20 -right-4 rotate-12 bg-white text-black p-1 border-2 border-black font-label-mono text-[10px] uppercase font-black">
+            Trust No One
+        </div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-10 p-margin h-[calc(100vh-40px)] relative overflow-hidden halftone">
+<!-- Background Decay Elements -->
+<div class="absolute inset-0 crt-scanline"></div>
+<!-- Chaos Bento Grid -->
+<div class="grid grid-cols-12 grid-rows-6 gap-gutter h-full">
+<!-- CENTRAL TERMINAL WINDOW -->
+<div class="col-span-8 row-span-4 win95-outset relative flex flex-col z-10">
+<!-- Title Bar -->
+<div class="bg-gradient-to-r from-blue-900 to-blue-600 p-1 flex justify-between items-center px-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-white text-sm">terminal</span>
+<span class="text-white font-label-mono text-xs font-bold">C:\PIXEL_MORPH\ROOT.EXE</span>
+</div>
+<div class="flex gap-0.5">
+<button class="win95-outset w-4 h-4 text-[10px] flex items-center justify-center font-bold">?</button>
+<button class="win95-outset w-4 h-4 text-[10px] flex items-center justify-center font-bold">X</button>
+</div>
+</div>
+<!-- Content Area -->
+<div class="flex-grow bg-black p-4 font-label-mono text-primary-container overflow-y-auto win95-inset relative">
+<pre class="text-[10px] leading-tight mb-4 text-secondary">   _  _   _  _   _  _   _  _ 
+  / \/ \ / \/ \ / \/ \ / \/ \
+ (  R  )(  O  )(  O  )(  T  )
+  \_/\_/ \_/\_/ \_/\_/ \_/\_/
+                    </pre>
+<p class="mb-2">Initializing breach protocol...</p>
+<p class="mb-2">Target: <span class="text-white bg-error px-1">ENCRYPTED_GATEWAY_04</span></p>
+<p class="mb-2"><span class="text-secondary-fixed-dim">[OK]</span> Kernel hooks deployed.</p>
+<p class="mb-2"><span class="text-secondary-fixed-dim">[OK]</span> Pixel buffer hijacked.</p>
+<div class="flex gap-2 items-center text-secondary mb-4">
+<span class="material-symbols-outlined animate-pulse">keyboard_arrow_right</span>
+<span class="bg-primary-container text-black px-1">MORPH --FORCE --OVERRIDE</span>
+</div>
+<!-- Glitch Block -->
+<div class="border border-secondary/30 p-2 bg-secondary/10 mb-4">
+<p class="text-xs text-secondary-fixed-dim">DATA_STREAM_CORRUPTION_DETECTED</p>
+<div class="flex gap-1 mt-2">
+<div class="h-2 w-full bg-secondary-container"></div>
+<div class="h-2 w-24 bg-surface-container-highest"></div>
+<div class="h-2 w-12 bg-secondary-container"></div>
+</div>
+</div>
+<!-- Input Block -->
+<div class="flex items-center gap-2">
+<span class="text-primary-container">#ROOT@PIXEL_MORPH:</span>
+<div class="w-2 h-5 bg-primary-container animate-pulse"></div>
+</div>
+</div>
+<!-- "Stickers" on Window Frame -->
+<div class="absolute -top-4 -right-2 bg-yellow-300 text-black px-2 py-1 rotate-6 border border-black shadow-md font-graffiti-display text-xs">
+                    STAY BACK!
+                </div>
+<div class="absolute -bottom-6 left-10 p-1 win95-outset rotate-[-4deg] bg-[#c0c0c0] flex items-center gap-2">
+<img alt="low-fi pixel art sticker of a smirking face" class="w-8 h-8 grayscale contrast-150" data-alt="low-fi pixel art sticker of a smirking face in black and white glitch style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoBW-5GdSN7SOATPrpfmxSJiu9Ev60YtRCqMSrlpQuGjUwDVN0jgeANZ4FmDDwDJRRyjpYMh7T9z1dAj3UqS1TOcB5f0Zx1cuc-vwodfWlnZYMPtKPylmffFKnknpb4dq-sS2X5l9-GQmyvBgvV1VOXQx9b0qkOoyay6ezGUuowOS8Pm0QzyuYptZWdQZnlLo3Ul6CEL1qzwKBD6hdqMm_xOK6t0Y55fHJ0bPCHLUG8LR77kKDRMYeox1L3qgmyF78xaqKP0edAov5"/>
+<span class="font-label-mono text-[8px] font-black leading-none">SYSTEM<br/>OWNED</span>
+</div>
+</div>
+<!-- MORPH FEED AREA -->
+<div class="col-span-4 row-span-3 win95-outset overflow-hidden flex flex-col">
+<div class="bg-zinc-400 p-1 border-b border-zinc-600 flex items-center">
+<span class="text-[10px] font-bold font-label-mono uppercase">Live_Feed.raw</span>
+</div>
+<div class="flex-grow bg-zinc-900 relative group">
+<img alt="glitchy surveillance feed" class="w-full h-full object-cover opacity-60 mix-blend-screen" data-alt="grainy low-resolution surveillance camera footage of a server room with heavy digital static, neon green color fringing and scanlines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCubeHo3WngGiPUmmRieL-DTsaq1B9hmq9wNNIn0ikz05DJRS1l1JXcUKD0lcMYonMiI2lrOV7a1-eIBM4D3rcSbEOq66D-XoW3UfNWyWVF-Xv2qWIO9Yv6J3c5v13D1VPUoODWM7bvDP5eGNthca1fSdDg0xPxlrN5enis9p19ArJeAgzNn9h4wGPOvbWJwjJCuBjBv3NHkQozredY3Tv5izZ5Te4pbhTZbRA48bpixdizby0UedqAvDSNk3IBjrIFRuK9twWAHChd"/>
+<div class="absolute top-2 right-2 flex items-center gap-1 text-red-500">
+<div class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+<span class="text-[10px] font-bold font-label-mono">REC</span>
+</div>
+<div class="absolute bottom-2 left-2 text-[#00FFC2] font-label-mono text-[10px] bg-black/50 p-1">
+                        CAM_01 // 0x4F8A
+                    </div>
+</div>
+<div class="h-8 bg-zinc-300 flex items-center px-2 gap-2">
+<button class="win95-outset w-6 h-4 flex items-center justify-center">
+<span class="material-symbols-outlined text-xs">play_arrow</span>
+</button>
+<div class="win95-inset bg-black h-4 flex-grow relative">
+<div class="absolute left-0 top-0 h-full w-2/3 bg-[#00FFC2]"></div>
+</div>
+</div>
+</div>
+<!-- ACTION BENTO: PAYLOADS -->
+<div class="col-span-4 row-span-3 win95-outset p-2 flex flex-col gap-2">
+<h3 class="font-label-mono text-[10px] font-black uppercase text-zinc-700 bg-zinc-400 px-1">Active_Payloads</h3>
+<div class="space-y-1">
+<div class="win95-inset bg-white/5 p-2 flex justify-between items-center hover:bg-white/10 cursor-pointer">
+<span class="font-label-mono text-xs">HEARTBLEED.VBS</span>
+<span class="text-[10px] text-primary-container">RUNNING</span>
+</div>
+<div class="win95-inset bg-white/5 p-2 flex justify-between items-center hover:bg-white/10 cursor-pointer">
+<span class="font-label-mono text-xs">NULL_POINTER.EXE</span>
+<span class="text-[10px] text-error">WAITING</span>
+</div>
+<div class="win95-inset bg-white/5 p-2 flex justify-between items-center hover:bg-white/10 cursor-pointer">
+<span class="font-label-mono text-xs">OVERFLOW.SH</span>
+<span class="text-[10px] text-zinc-500">IDLE</span>
+</div>
+</div>
+<div class="mt-auto pt-2 border-t border-zinc-500">
+<button class="w-full win95-outset py-2 font-label-mono font-black text-sm hover:translate-y-[1px] active:win95-inset">
+                        INITIALIZE_SUDO_RM
+                    </button>
+</div>
+</div>
+<!-- BOTTOM STATUS CARDS -->
+<div class="col-span-4 row-span-2 win95-outset bg-[#c0c0c0] flex items-center justify-center p-4">
+<div class="text-center">
+<span class="material-symbols-outlined text-4xl mb-2" data-weight="fill">security_update_warning</span>
+<p class="font-headline-md text-error tracking-tighter italic glitch-text">BIO_HACK IN_PROGRESS</p>
+</div>
+</div>
+<div class="col-span-4 row-span-2 win95-outset bg-zinc-400 p-2 overflow-hidden relative">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-sm">database</span>
+<span class="font-label-mono text-xs font-bold">MEMORY_DUMP</span>
+</div>
+<div class="win95-inset bg-black h-24 p-1 font-mono text-[8px] text-green-500 opacity-70 leading-none overflow-hidden">
+                    00000000 7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00<br/>
+                    00000010 03 00 3e 00 01 00 00 00 40 4d 00 00 00 00 00 00<br/>
+                    00000020 40 00 00 00 00 00 00 00 c8 e3 2d 00 00 00 00 00<br/>
+                    00000030 00 00 00 00 40 00 38 00 09 00 40 00 24 00 23 00<br/>
+                    00000040 06 00 00 00 04 00 00 00 40 00 00 00 00 00 00 00<br/>
+                    00000050 40 00 00 00 00 00 00 00 40 00 00 00 00 00 00 00<br/>
+</div>
+<!-- Spray paint divider overlay -->
+<div class="absolute -bottom-2 -left-4 w-64 h-8 bg-white/20 blur-sm rotate-[-15deg] pointer-events-none"></div>
+</div>
+</div>
+<!-- Floating Rage Meme Sticker -->
+<div class="absolute bottom-12 right-12 z-50 rotate-[-12deg] group cursor-help">
+<div class="bg-white p-2 border-4 border-black win95-outset">
+<img alt="horror rage meme pixel art" class="w-20 h-20 invert grayscale" data-alt="high contrast pixel art of a distorted screaming face in black and white with glowing cyan eyes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUCS1Bj5_yONtTo-EjWebHbVidyLK9Ar22vaBxEQDe6n1d6hsMaOcwv744AUI4AuYL20oJg_E5x4ceFtOqjxd6rbubyGaBlGqx2gdcQg0rbMlkj2-hz62Xs08h8pU91kWaia2mODhLUhVbgKnTkFtd--cnQfn7uZ7LLHvptOwGgh6Z7enncSedyUL7_RjkItI1eMemcdntO0Z-cL7G0Zcmd9_XtOTPQcvs6XfUcYM748tTt-HMTXDMCu8XL_uSV-9Aq9DW3fshM-to"/>
+<p class="text-black font-graffiti-display text-center text-xs mt-2 uppercase font-black">U MAD BRO?</p>
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="fixed bottom-0 w-full border-t border-green-900/50 bg-black/90 flex items-center justify-between px-4 py-1 w-full overflow-hidden z-50">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-green-500 animate-pulse"></div>
+<span class="font-mono text-[10px] uppercase leading-none text-green-500">[SYSTEM_ERROR]: STACK_OVERFLOW_AT_0x00FFC2</span>
+</div>
+</div>
+<nav class="flex divide-x divide-green-900/30">
+<a class="px-4 font-mono text-[10px] uppercase leading-none text-green-800 hover:text-cyan-400 hover:bg-green-900/20 transition-colors animate-pulse" href="#">PING_BACK</a>
+<a class="px-4 font-mono text-[10px] uppercase leading-none text-green-800 hover:text-cyan-400 hover:bg-green-900/20 transition-colors" href="#">WIPE_DRIVE</a>
+<a class="px-4 font-mono text-[10px] uppercase leading-none text-green-800 hover:text-cyan-400 hover:bg-green-900/20 transition-colors" href="#">SUDO_RM</a>
+</nav>
+<div class="flex items-center gap-2">
+<span class="font-mono text-[10px] text-zinc-600">CPU: 99%</span>
+<div class="win95-inset bg-zinc-900 w-24 h-2">
+<div class="bg-red-600 h-full w-[99%]"></div>
+</div>
+</div>
+</footer>
+</body></html>
